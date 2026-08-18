@@ -11,6 +11,10 @@ from ..schemas import UserCreate, UserLogin, Token, UserOut, ForgotPasswordReque
 from ..utils.security import get_password_hash, verify_password, create_access_token
 from ..utils.dependencies import get_current_user
 from ..utils.helpers import log_audit
+from ..config import settings
+import logging
+
+logger = logging.getLogger("auth")
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -147,9 +151,11 @@ def forgot_password(req_in: ForgotPasswordRequest, db: Session = Depends(get_db)
         user.reset_token_expiry = datetime.utcnow() + timedelta(hours=1)
         db.commit()
         
-        reset_url = f"http://localhost:4200/reset-password?token={plain_token}"
+        frontend_url = settings.FRONTEND_URL.rstrip('/')
+        reset_url = f"{frontend_url}/reset-password?token={plain_token}"
         # Log to terminal for demo purposes
-        print(f"\n[DEMO] PASSWORD RESET URL: {reset_url}\n")
+        logger.info(f"[DEMO] PASSWORD RESET URL: {reset_url}")
+        print(f"\n[DEMO] PASSWORD RESET URL: {reset_url}\n", flush=True)
         
         # Trigger real SMTP email notification
         from ..services.email_service import send_password_reset_email

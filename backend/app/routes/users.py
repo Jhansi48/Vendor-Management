@@ -12,6 +12,7 @@ from ..utils.helpers import log_audit
 
 router = APIRouter(prefix="/users", tags=["Users"])
 admin_required = RoleChecker(["Administrator"])
+internal_staff_required = RoleChecker(["Administrator", "Procurement Manager", "Supply Chain Manager", "Finance Officer", "Auditor"])
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
 ALLOWED_MIMETYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
@@ -66,7 +67,7 @@ def upload_avatar(
     return {"avatar_url": f"/uploads/avatars/{unique_filename}"}
 
 @router.get("/", response_model=List[UserOut])
-def list_users(db: Session = Depends(get_db), current_user: User = Depends(admin_required)):
+def list_users(db: Session = Depends(get_db), current_user: User = Depends(internal_staff_required)):
     return db.query(User).all()
 
 @router.get("/{user_id}", response_model=UserOut)

@@ -10,11 +10,10 @@ export class VendorService {
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
-
-  getVendors(category?: string, status?: string, search?: string): Observable<any[]> {
+  getVendors(status?: string, category?: string, search?: string): Observable<any[]> {
     let params = new HttpParams();
-    if (category) params = params.set('category', category);
     if (status) params = params.set('status', status);
+    if (category) params = params.set('category', category);
     if (search) params = params.set('search', search);
     return this.http.get<any[]>(`${this.apiUrl}/vendors/`, { params });
   }

@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     ENV_MODE: str = "development"
+    FRONTEND_URL: str = "http://localhost:4200"
+    CORS_ORIGINS: str = "http://localhost:4200,http://localhost:80,http://localhost"
 
     # SMTP Settings
     SMTP_HOST: str = ""
