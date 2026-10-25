@@ -151,8 +151,8 @@ def login(login_in: UserLogin, request: Request, db: Session = Depends(get_db)):
 
 @router.post("/token", response_model=Token)
 def login_for_access_token(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
-    request: Request = None,
     db: Session = Depends(get_db),
 ):
     login_in = UserLogin(
