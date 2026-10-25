@@ -12,6 +12,7 @@ from ..schemas import UserCreate, UserLogin, Token, UserOut, ForgotPasswordReque
 from ..utils.security import get_password_hash, verify_password, create_access_token
 from ..utils.dependencies import get_current_user
 from ..utils.helpers import log_audit, create_notification
+from fastapi.security import OAuth2PasswordRequestForm
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
