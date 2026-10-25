@@ -1,22 +1,38 @@
+import sys
 from datetime import datetime, date, timedelta
 from sqlalchemy.orm import Session
 from .database import SessionLocal, Base, engine
+from .config import settings
 from .models import User, Vendor, ProcurementRequest, PurchaseOrder, VendorPerformance, ReliabilityScore, Contract, Communication, Notification, AuditLog
 from .utils.security import get_password_hash
 
-def seed_db(db: Session):
-    print("Clearing database tables...")
-    db.query(AuditLog).delete()
-    db.query(Notification).delete()
-    db.query(Communication).delete()
-    db.query(Contract).delete()
-    db.query(ReliabilityScore).delete()
-    db.query(VendorPerformance).delete()
-    db.query(PurchaseOrder).delete()
-    db.query(ProcurementRequest).delete()
-    db.query(User).delete()
-    db.query(Vendor).delete()
-    db.commit()
+def seed_db(db: Session, force: bool = False):
+    is_prod = settings.ENV_MODE.lower() in ("production", "prod")
+    force_seed = force or "--force" in sys.argv
+    existing_users = db.query(User).count()
+
+    if is_prod and not force_seed:
+        if existing_users > 0:
+            print("[SAFEGUARD] Production environment detected with existing user data. Skipping destructive database wipe to protect production data. Pass --force to override.")
+            return
+        else:
+            print("[SAFEGUARD] Production environment detected with empty database. Proceeding with initial seed without clearing.")
+    elif existing_users > 0 and not force_seed and "--clear" not in sys.argv:
+        print("[INFO] Existing database records detected. Skipping destructive clear. Pass --clear or --force to reset demo data.")
+        return
+    else:
+        print("Clearing database tables...")
+        db.query(AuditLog).delete()
+        db.query(Notification).delete()
+        db.query(Communication).delete()
+        db.query(Contract).delete()
+        db.query(ReliabilityScore).delete()
+        db.query(VendorPerformance).delete()
+        db.query(PurchaseOrder).delete()
+        db.query(ProcurementRequest).delete()
+        db.query(User).delete()
+        db.query(Vendor).delete()
+        db.commit()
 
     print("Seeding vendors...")
     vendors_data = [

@@ -10,8 +10,8 @@ from .config import settings
 # Import routers
 from .routes import auth, users, vendors, procurement, purchase_orders, performance, reliability, contracts, communications, notifications, reports, dashboard, audit_logs
 
-# Create tables only if using SQLite (e.g. local quick testing)
-if engine.url.drivername == "sqlite":
+# Create tables only if using SQLite in local development (production uses Alembic migrations)
+if engine.url.drivername == "sqlite" and settings.ENV_MODE.lower() not in ("production", "prod"):
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
@@ -23,21 +23,18 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Ensure uploads/avatars directory exists and mount static serving
-os.makedirs(os.path.join("uploads", "avatars"), exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# Ensure configured uploads directory exists and mount static serving
+os.makedirs(settings.avatars_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
-# CORS configuration
-origins = [
-    "http://localhost:4200",
-    "http://localhost:80",
-    "http://localhost",
-    "*"  # In development, allow broad access
-]
+# Dynamic CORS configuration from environment (wildcard forbidden in production)
+cors_origins = settings.parsed_cors_origins
+if not cors_origins:
+    cors_origins = ["http://localhost:4200", "http://localhost:80", "http://localhost"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

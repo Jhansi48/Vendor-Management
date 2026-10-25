@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app.config import settings
 from app.models import Base
+from app.database import get_normalized_database_url
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -22,8 +23,8 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Set the sqlalchemy database URL dynamically from app settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Set the sqlalchemy database URL dynamically from app settings (normalized for PostgreSQL)
+config.set_main_option("sqlalchemy.url", get_normalized_database_url(settings.DATABASE_URL))
 
 # add your model's MetaData object here for 'autogenerate' support
 target_metadata = Base.metadata

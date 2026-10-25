@@ -782,5 +782,116 @@ def test_login_and_token_validation():
     db.close()
 
 
+def test_production_jwt_secret_validation():
+    from app.config import Settings, DEFAULT_DEV_JWT_SECRET
+    import pytest
+    from pydantic import ValidationError
+
+    # In dev mode, default secret is accepted
+    dev_settings = Settings(ENV_MODE="development", JWT_SECRET=DEFAULT_DEV_JWT_SECRET)
+    assert dev_settings.JWT_SECRET == DEFAULT_DEV_JWT_SECRET
+
+    # In production mode, default secret must be rejected
+    with pytest.raises(ValidationError) as exc_info:
+        Settings(ENV_MODE="production", JWT_SECRET=DEFAULT_DEV_JWT_SECRET)
+    assert "default development secret" in str(exc_info.value)
+
+    # In production mode, short secret must be rejected
+    with pytest.raises(ValidationError) as exc_info:
+        Settings(ENV_MODE="production", JWT_SECRET="short_secret_123")
+    assert "at least 32 characters" in str(exc_info.value)
+
+    # In production mode, strong secret is accepted
+    strong_secret = "a_super_secure_production_secret_key_32_chars!"
+    prod_settings = Settings(ENV_MODE="production", JWT_SECRET=strong_secret)
+    assert prod_settings.JWT_SECRET == strong_secret
+
+    # SECRET_KEY alias is accepted
+    alias_settings = Settings(ENV_MODE="production", SECRET_KEY="another_very_long_production_secret_key_here!")
+    assert alias_settings.JWT_SECRET == "another_very_long_production_secret_key_here!"
 
 
+def test_postgres_url_normalization():
+    from app.database import get_normalized_database_url
+
+    # postgres:// normalized to postgresql://
+    raw_postgres = "postgres://username:password@render-host.com:5432/vendoriq"
+    normalized = get_normalized_database_url(raw_postgres)
+    assert normalized == "postgresql://username:password@render-host.com:5432/vendoriq"
+
+    # postgresql:// untouched
+    standard = "postgresql://username:password@localhost:5432/vendoriq"
+    assert get_normalized_database_url(standard) == standard
+
+    # sqlite untouched
+    sqlite_url = "sqlite:///./vendoriq.db"
+    assert get_normalized_database_url(sqlite_url) == sqlite_url
+
+
+def test_cors_origins_parsing():
+    from app.config import Settings
+
+    # Splits and strips comma-separated origins
+    cfg = Settings(CORS_ORIGINS="https://app.vendoriq.com, http://localhost:4200, https://custom.domain.com")
+    assert cfg.parsed_cors_origins == [
+        "https://app.vendoriq.com",
+        "http://localhost:4200",
+        "https://custom.domain.com"
+    ]
+
+    # In production, wildcard is filtered out
+    prod_cfg = Settings(
+        ENV_MODE="production",
+        JWT_SECRET="valid_production_secret_32_characters_long_now",
+        CORS_ORIGINS="*, https://vendoriq-rho.vercel.app"
+    )
+    assert prod_cfg.parsed_cors_origins == ["https://vendoriq-rho.vercel.app"]
+    assert "*" not in prod_cfg.parsed_cors_origins
+
+
+def test_password_reset_uses_configured_frontend_url():
+    from app.config import settings
+    from unittest.mock import patch
+
+    # Mock send_password_reset_email to intercept generated reset URL
+    with patch("app.services.email_service.send_password_reset_email") as mock_send:
+        resp = client.post("/api/auth/forgot-password", json={"email": "admin@test.com"})
+        assert resp.status_code == 200
+        assert "link has been generated" in resp.json()["message"]
+        assert mock_send.called
+        args, _ = mock_send.call_args
+        email_arg, username_arg, reset_url = args
+        assert email_arg == "admin@test.com"
+        expected_prefix = settings.FRONTEND_URL.rstrip("/")
+        assert reset_url.startswith(expected_prefix)
+        assert "/reset-password?token=" in reset_url
+
+
+def test_expired_or_invalid_reset_token_rejection():
+    import hashlib
+    db = TestingSessionLocal()
+    try:
+        # 1. Invalid / tampered token
+        invalid_resp = client.post("/api/auth/reset-password", json={
+            "token": "completely_bogus_token_signature",
+            "new_password": "ValidNewPassword123"
+        })
+        assert invalid_resp.status_code == 400
+        assert "Invalid or expired reset token" in invalid_resp.json()["detail"]
+
+        # 2. Expired token configured in database
+        plain_token = "expired_token_123456"
+        hashed = hashlib.sha256(plain_token.encode()).hexdigest()
+        admin_user = db.query(User).filter(User.username == "admin_test").first()
+        admin_user.reset_token = hashed
+        admin_user.reset_token_expiry = datetime.utcnow() - timedelta(minutes=10)
+        db.commit()
+
+        expired_resp = client.post("/api/auth/reset-password", json={
+            "token": plain_token,
+            "new_password": "ValidNewPassword123"
+        })
+        assert expired_resp.status_code == 400
+        assert "Invalid or expired reset token" in expired_resp.json()["detail"]
+    finally:
+        db.close()

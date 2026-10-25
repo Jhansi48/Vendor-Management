@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import secrets
 import hashlib
 from ..database import get_db
+from ..config import settings
 from ..models import User, Vendor
 from ..schemas import UserCreate, UserLogin, Token, UserOut, ForgotPasswordRequest, ResetPasswordConfirm
 from ..utils.security import get_password_hash, verify_password, create_access_token
@@ -163,7 +164,8 @@ def forgot_password(req_in: ForgotPasswordRequest, db: Session = Depends(get_db)
         user.reset_token_expiry = datetime.utcnow() + timedelta(hours=1)
         db.commit()
         
-        reset_url = f"http://localhost:4200/reset-password?token={plain_token}"
+        frontend_base = settings.FRONTEND_URL.rstrip("/")
+        reset_url = f"{frontend_base}/reset-password?token={plain_token}"
         # Log to terminal for demo purposes
         print(f"\n[DEMO] PASSWORD RESET URL: {reset_url}\n")
         
@@ -252,7 +254,8 @@ def upload_my_avatar(
     
     # Delete old avatar file to avoid orphaned files
     if current_user.avatar_url:
-        old_path = current_user.avatar_url.lstrip("/")
+        old_filename = os.path.basename(current_user.avatar_url)
+        old_path = os.path.join(settings.avatars_dir, old_filename)
         if os.path.exists(old_path):
             try:
                 os.remove(old_path)
@@ -261,7 +264,7 @@ def upload_my_avatar(
                 
     # Generate unique filename
     unique_filename = f"{uuid.uuid4().hex}.{ext}"
-    avatar_dir = os.path.join("uploads", "avatars")
+    avatar_dir = settings.avatars_dir
     os.makedirs(avatar_dir, exist_ok=True)
     
     # Save file
@@ -293,7 +296,8 @@ def delete_my_avatar(
 ):
     if current_user.avatar_url:
         # Delete old avatar file to avoid orphaned files
-        old_path = current_user.avatar_url.lstrip("/")
+        old_filename = os.path.basename(current_user.avatar_url)
+        old_path = os.path.join(settings.avatars_dir, old_filename)
         if os.path.exists(old_path):
             try:
                 os.remove(old_path)

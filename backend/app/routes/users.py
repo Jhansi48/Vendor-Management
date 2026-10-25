@@ -9,6 +9,7 @@ from ..schemas import UserOut, UserUpdate, UserCreate
 from ..utils.dependencies import RoleChecker, get_current_user
 from ..utils.security import get_password_hash
 from ..utils.helpers import log_audit
+from ..config import settings
 
 router = APIRouter(prefix="/users", tags=["Users"])
 admin_required = RoleChecker(["Administrator"])
@@ -53,8 +54,8 @@ def upload_avatar(
     # Generate unique filename
     unique_filename = f"{uuid.uuid4().hex}.{ext}"
     
-    # Ensure folder path exists
-    avatar_dir = os.path.join("uploads", "avatars")
+    # Ensure configured folder path exists
+    avatar_dir = settings.avatars_dir
     os.makedirs(avatar_dir, exist_ok=True)
     
     # Save the file
