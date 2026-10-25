@@ -148,7 +148,6 @@ def login(login_in: UserLogin, request: Request, db: Session = Depends(get_db)):
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
-    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
