@@ -13,6 +13,7 @@ export class RegisterComponent implements OnInit {
   loading = false;
   success = false;
   error = '';
+  showPassword = false;
 
   roles = [
     'Administrator',
@@ -54,6 +55,10 @@ export class RegisterComponent implements OnInit {
     this.registerForm.get('role')?.setValue('Vendor');
   }
 
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   onSubmit(): void {
     if (this.registerForm.invalid) {
       return;
@@ -62,7 +67,16 @@ export class RegisterComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.authService.register(this.registerForm.value).subscribe({
+    const payload = {
+      username: this.registerForm.value.username?.trim(),
+      email: this.registerForm.value.email?.trim(),
+      full_name: this.registerForm.value.full_name?.trim(),
+      password: this.registerForm.value.password,
+      role: this.registerForm.value.role,
+      vendor_name: this.registerForm.value.vendor_name ? this.registerForm.value.vendor_name.trim() : null
+    };
+
+    this.authService.register(payload).subscribe({
       next: () => {
         this.loading = false;
         this.success = true;

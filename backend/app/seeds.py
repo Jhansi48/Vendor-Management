@@ -1,26 +1,22 @@
 from datetime import datetime, date, timedelta
-import sys
 from sqlalchemy.orm import Session
 from .database import SessionLocal, Base, engine
 from .models import User, Vendor, ProcurementRequest, PurchaseOrder, VendorPerformance, ReliabilityScore, Contract, Communication, Notification, AuditLog
 from .utils.security import get_password_hash
 
-def seed_db(db: Session, clear_existing: bool = False, repair_demo: bool = False):
-    if clear_existing:
-        print("Clearing database tables...")
-        db.query(AuditLog).delete()
-        db.query(Notification).delete()
-        db.query(Communication).delete()
-        db.query(Contract).delete()
-        db.query(ReliabilityScore).delete()
-        db.query(VendorPerformance).delete()
-        db.query(PurchaseOrder).delete()
-        db.query(ProcurementRequest).delete()
-        db.query(User).delete()
-        db.query(Vendor).delete()
-        db.commit()
-    else:
-        print("Running in safe seeding mode (no tables cleared).")
+def seed_db(db: Session):
+    print("Clearing database tables...")
+    db.query(AuditLog).delete()
+    db.query(Notification).delete()
+    db.query(Communication).delete()
+    db.query(Contract).delete()
+    db.query(ReliabilityScore).delete()
+    db.query(VendorPerformance).delete()
+    db.query(PurchaseOrder).delete()
+    db.query(ProcurementRequest).delete()
+    db.query(User).delete()
+    db.query(Vendor).delete()
+    db.commit()
 
     print("Seeding vendors...")
     vendors_data = [
@@ -38,23 +34,14 @@ def seed_db(db: Session, clear_existing: bool = False, repair_demo: bool = False
 
     vendors = []
     for v_data in vendors_data:
-        vendor = db.query(Vendor).filter(Vendor.name == v_data["name"]).first()
-        if not vendor:
-            vendor = Vendor(**v_data)
-            db.add(vendor)
-            db.commit()
-            db.refresh(vendor)
-            print(f"Created vendor: {vendor.name}")
-        else:
-            if repair_demo:
-                print(f"Repairing vendor details: {vendor.name}")
-                for key, val in v_data.items():
-                    setattr(vendor, key, val)
-                db.commit()
-                db.refresh(vendor)
-            else:
-                print(f"Vendor already exists: {vendor.name}")
+        vendor = Vendor(**v_data)
+        db.add(vendor)
         vendors.append(vendor)
+    db.commit()
+
+    # Re-fetch vendors to have IDs loaded
+    for v in vendors:
+        db.refresh(v)
 
     print("Seeding users...")
     password_hash = get_password_hash("password123")
@@ -71,27 +58,13 @@ def seed_db(db: Session, clear_existing: bool = False, repair_demo: bool = False
 
     users = []
     for u_data in users_data:
-        user = db.query(User).filter(User.username == u_data["username"]).first()
-        if not user:
-            user = User(**u_data)
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-            print(f"Created user: {user.username}")
-        else:
-            if repair_demo:
-                print(f"Repairing user details and credentials: {user.username}")
-                user.email = u_data["email"]
-                user.hashed_password = u_data["hashed_password"]
-                user.role = u_data["role"]
-                user.full_name = u_data["full_name"]
-                user.vendor_id = u_data.get("vendor_id")
-                user.is_active = u_data.get("is_active", True)
-                db.commit()
-                db.refresh(user)
-            else:
-                print(f"User already exists: {user.username}")
+        user = User(**u_data)
+        db.add(user)
         users.append(user)
+    db.commit()
+
+    for u in users:
+        db.refresh(u)
 
     admin_user = users[0]
     proc_user = users[1]
@@ -119,16 +92,13 @@ def seed_db(db: Session, clear_existing: bool = False, repair_demo: bool = False
 
     proc_reqs = []
     for r_data in reqs_data:
-        req = db.query(ProcurementRequest).filter(ProcurementRequest.title == r_data["title"]).first()
-        if not req:
-            req = ProcurementRequest(**r_data)
-            db.add(req)
-            db.commit()
-            db.refresh(req)
-            print(f"Created procurement request: {req.title}")
-        else:
-            print(f"Procurement request already exists: {req.title}")
+        req = ProcurementRequest(**r_data)
+        db.add(req)
         proc_reqs.append(req)
+    db.commit()
+
+    for r in proc_reqs:
+        db.refresh(r)
 
     print("Seeding purchase orders...")
     today = datetime.utcnow()
@@ -148,38 +118,37 @@ def seed_db(db: Session, clear_existing: bool = False, repair_demo: bool = False
 
     purchase_orders = []
     for po_d in pos_data:
-        po = db.query(PurchaseOrder).filter(PurchaseOrder.po_number == po_d["po_number"]).first()
-        if not po:
-            po = PurchaseOrder(**po_d)
-            db.add(po)
-            db.commit()
-            db.refresh(po)
-            print(f"Created purchase order: {po.po_number}")
-        else:
-            print(f"Purchase order already exists: {po.po_number}")
+        po = PurchaseOrder(**po_d)
+        db.add(po)
         purchase_orders.append(po)
+    db.commit()
+
+    for po in purchase_orders:
+        db.refresh(po)
 
     print("Seeding performance records...")
     perf_data = [
+        # Apex Materials (Excellent)
         {"vendor_id": vendors[0].id, "purchase_order_id": purchase_orders[0].id, "delivery_on_time": True, "delivery_delay_days": 0, "quality_rating": 95.0, "communication_rating": 90.0, "compliance_rating": 95.0, "issue_resolution_rating": 90.0, "comments": "Excellent high quality steel rebars, delivered exactly on time.", "logged_by_id": scm_user.id},
+        # Titan Equipment (Delayed 2 days, good quality)
         {"vendor_id": vendors[1].id, "purchase_order_id": purchase_orders[1].id, "delivery_on_time": False, "delivery_delay_days": 2, "quality_rating": 85.0, "communication_rating": 80.0, "compliance_rating": 85.0, "issue_resolution_rating": 80.0, "comments": "Excavator dispatch delayed by 2 days, equipment functioned well.", "logged_by_id": scm_user.id},
+        # IT Solutions Group (Critical delays, multiple revisions)
         {"vendor_id": vendors[2].id, "purchase_order_id": purchase_orders[2].id, "delivery_on_time": False, "delivery_delay_days": 10, "quality_rating": 50.0, "communication_rating": 40.0, "compliance_rating": 60.0, "issue_resolution_rating": 50.0, "comments": "Development laptops were highly delayed and OS setup was incomplete.", "logged_by_id": admin_user.id},
+        # Logistics Express (Perfect delivery)
         {"vendor_id": vendors[3].id, "purchase_order_id": purchase_orders[3].id, "delivery_on_time": True, "delivery_delay_days": 0, "quality_rating": 90.0, "communication_rating": 90.0, "compliance_rating": 95.0, "issue_resolution_rating": 90.0, "comments": "Truck was punctual, packaging intact.", "logged_by_id": scm_user.id},
+        # Apex Janitorial (Delayed 8 days, critical review)
         {"vendor_id": vendors[4].id, "purchase_order_id": purchase_orders[4].id, "delivery_on_time": False, "delivery_delay_days": 8, "quality_rating": 40.0, "communication_rating": 30.0, "compliance_rating": 50.0, "issue_resolution_rating": 35.0, "comments": "Repeated cleaning service delays and poor cleaning execution.", "logged_by_id": finance_user.id},
+        # Standard Maintenance
         {"vendor_id": vendors[5].id, "purchase_order_id": purchase_orders[5].id, "delivery_on_time": True, "delivery_delay_days": 0, "quality_rating": 85.0, "communication_rating": 80.0, "compliance_rating": 85.0, "issue_resolution_rating": 80.0, "comments": "HVAC checked and filters changed accurately.", "logged_by_id": scm_user.id}
     ]
 
     for pf in perf_data:
-        perf = db.query(VendorPerformance).filter(VendorPerformance.purchase_order_id == pf["purchase_order_id"]).first()
-        if not perf:
-            perf = VendorPerformance(**pf)
-            db.add(perf)
-            print(f"Created performance record for PO ID: {pf['purchase_order_id']}")
-        else:
-            print(f"Performance record already exists for PO ID: {pf['purchase_order_id']}")
+        perf = VendorPerformance(**pf)
+        db.add(perf)
     db.commit()
 
     print("Running initial scoring calculation for seeded vendors...")
+    # Calculate initial scores for active vendors
     for v in vendors:
         if v.status == "Active":
             try:
@@ -199,68 +168,55 @@ def seed_db(db: Session, clear_existing: bool = False, repair_demo: bool = False
     ]
 
     for c_d in contracts_data:
-        contract = db.query(Contract).filter(Contract.contract_number == c_d["contract_number"]).first()
-        if not contract:
-            contract = Contract(**c_d)
-            db.add(contract)
-            print(f"Created contract: {c_d['contract_number']}")
-        else:
-            print(f"Contract already exists: {c_d['contract_number']}")
+        contract = Contract(**c_d)
+        db.add(contract)
     db.commit()
 
-    if clear_existing or db.query(Communication).count() == 0:
-        print("Seeding communications...")
-        comm_data = [
-            {"sender_id": proc_user.id, "recipient_id": users[5].id, "vendor_id": vendors[0].id, "subject": "Steel Rebar Delivery Schedule", "message": "Hi John, could you please verify the dispatch timeline for the remaining 100 tons?", "is_read": True},
-            {"sender_id": users[5].id, "recipient_id": proc_user.id, "vendor_id": vendors[0].id, "subject": "Re: Steel Rebar Delivery Schedule", "message": "Yes Sarah, the dispatch is scheduled for this Friday. You should receive the loading manifest today.", "is_read": False},
-            {"sender_id": scm_user.id, "recipient_id": users[6].id, "vendor_id": vendors[1].id, "subject": "Excavator Leasing Re-Inspection", "message": "Jane, we noticed hydraulic pressure fluctuations on unit #3. Please send a tech.", "is_read": True},
-            {"sender_id": users[6].id, "recipient_id": scm_user.id, "vendor_id": vendors[1].id, "subject": "Re: Excavator Leasing Re-Inspection", "message": "Will do. A mobile technician will be dispatched to your site tomorrow morning.", "is_read": False}
-        ]
-        for cm in comm_data:
-            comm = Communication(**cm)
-            db.add(comm)
-        db.commit()
-    else:
-        print("Communications table already contains data. Skipping.")
+    print("Seeding communications...")
+    comm_data = [
+        {"sender_id": proc_user.id, "recipient_id": users[5].id, "vendor_id": vendors[0].id, "subject": "Steel Rebar Delivery Schedule", "message": "Hi John, could you please verify the dispatch timeline for the remaining 100 tons?", "is_read": True},
+        {"sender_id": users[5].id, "recipient_id": proc_user.id, "vendor_id": vendors[0].id, "subject": "Re: Steel Rebar Delivery Schedule", "message": "Yes Sarah, the dispatch is scheduled for this Friday. You should receive the loading manifest today.", "is_read": False},
+        {"sender_id": scm_user.id, "recipient_id": users[6].id, "vendor_id": vendors[1].id, "subject": "Excavator Leasing Re-Inspection", "message": "Jane, we noticed hydraulic pressure fluctuations on unit #3. Please send a tech.", "is_read": True},
+        {"sender_id": users[6].id, "recipient_id": scm_user.id, "vendor_id": vendors[1].id, "subject": "Re: Excavator Leasing Re-Inspection", "message": "Will do. A mobile technician will be dispatched to your site tomorrow morning.", "is_read": False}
+    ]
 
-    if clear_existing or db.query(Notification).count() == 0:
-        print("Seeding notifications...")
-        notif_data = [
-            {"user_id": proc_user.id, "title": "Vendor Profile Submitted", "message": "Future Electronics has requested vendor approval.", "type": "Vendor Approval", "is_read": False},
-            {"user_id": proc_user.id, "title": "PO Created", "message": "Purchase Order PO-2026-0011 requires approval.", "type": "Procurement", "is_read": False},
-            {"user_id": scm_user.id, "title": "Contract Expiring Soon", "message": "Leasing contract for Titan Heavy Equipment expires in 15 days.", "type": "Contract Expiry", "is_read": False},
-            {"user_id": scm_user.id, "title": "Critical Reliability Alert", "message": "IT Solutions Group score dropped below 50. High risk flagged.", "type": "Compliance", "is_read": False}
-        ]
-        for nf in notif_data:
-            notif = Notification(**nf)
-            db.add(notif)
-        db.commit()
-    else:
-        print("Notifications table already contains data. Skipping.")
+    for cm in comm_data:
+        comm = Communication(**cm)
+        db.add(comm)
+    db.commit()
 
-    if clear_existing or db.query(AuditLog).count() == 0:
-        print("Seeding audit logs...")
-        audits = [
-            {"user_id": admin_user.id, "username": admin_user.username, "action": "Database Seeded", "module": "Auth", "details": "System database tables initialized and demo data loaded."},
-            {"user_id": admin_user.id, "username": admin_user.username, "action": "User Login", "module": "Auth", "details": "Admin logged in successfully."},
-            {"user_id": proc_user.id, "username": proc_user.username, "action": "Create Procurement Request", "module": "Procurement", "details": "Created request for Bulk Steel Rebar Supply."},
-            {"user_id": scm_user.id, "username": scm_user.username, "action": "Approve Procurement Request", "module": "Procurement", "details": "Approved request: Bulk Steel Rebar Supply."},
-            {"user_id": proc_user.id, "username": proc_user.username, "action": "Create Purchase Order", "module": "Purchase Orders", "details": "Generated PO-2026-0001."}
-        ]
-        for ad in audits:
-            audit = AuditLog(**ad)
-            db.add(audit)
-        db.commit()
-    else:
-        print("Audit logs table already contains data. Skipping.")
+    print("Seeding notifications...")
+    notif_data = [
+        {"user_id": proc_user.id, "title": "Vendor Profile Submitted", "message": "Future Electronics has requested vendor approval.", "type": "Vendor Approval", "is_read": False},
+        {"user_id": proc_user.id, "title": "PO Created", "message": "Purchase Order PO-2026-0011 requires approval.", "type": "Procurement", "is_read": False},
+        {"user_id": scm_user.id, "title": "Contract Expiring Soon", "message": "Leasing contract for Titan Heavy Equipment expires in 15 days.", "type": "Contract Expiry", "is_read": False},
+        {"user_id": scm_user.id, "title": "Critical Reliability Alert", "message": "IT Solutions Group score dropped below 50. High risk flagged.", "type": "Compliance", "is_read": False}
+    ]
+
+    for nf in notif_data:
+        notif = Notification(**nf)
+        db.add(notif)
+    db.commit()
+
+    print("Seeding audit logs...")
+    audits = [
+        {"user_id": admin_user.id, "username": admin_user.username, "action": "Database Seeded", "module": "Auth", "details": "System database tables initialized and demo data loaded."},
+        {"user_id": admin_user.id, "username": admin_user.username, "action": "User Login", "module": "Auth", "details": "Admin logged in successfully."},
+        {"user_id": proc_user.id, "username": proc_user.username, "action": "Create Procurement Request", "module": "Procurement", "details": "Created request for Bulk Steel Rebar Supply."},
+        {"user_id": scm_user.id, "username": scm_user.username, "action": "Approve Procurement Request", "module": "Procurement", "details": "Approved request: Bulk Steel Rebar Supply."},
+        {"user_id": proc_user.id, "username": proc_user.username, "action": "Create Purchase Order", "module": "Purchase Orders", "details": "Generated PO-2026-0001."}
+    ]
+
+    for ad in audits:
+        audit = AuditLog(**ad)
+        db.add(audit)
+    db.commit()
 
     print("Seeding completed successfully!")
 
 if __name__ == "__main__":
     db = SessionLocal()
-    clear_opt = "--clear" in sys.argv
-    repair_opt = "--repair" in sys.argv
     try:
-        seed_db(db, clear_existing=clear_opt, repair_demo=repair_opt)
+        seed_db(db)
     finally:
         db.close()

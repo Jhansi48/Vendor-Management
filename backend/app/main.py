@@ -28,18 +28,12 @@ os.makedirs(os.path.join("uploads", "avatars"), exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # CORS configuration
-raw_origins = settings.CORS_ORIGINS.split(",")
-origins = [o.strip() for o in raw_origins if o.strip()]
-
-# Include localhost defaults if not present
-for local_origin in ["http://localhost:4200", "http://localhost:80", "http://localhost"]:
-    if local_origin not in origins:
-        origins.append(local_origin)
-
-if settings.FRONTEND_URL:
-    fe_url = settings.FRONTEND_URL.rstrip("/")
-    if fe_url not in origins:
-        origins.append(fe_url)
+origins = [
+    "http://localhost:4200",
+    "http://localhost:80",
+    "http://localhost",
+    "*"  # In development, allow broad access
+]
 
 app.add_middleware(
     CORSMiddleware,

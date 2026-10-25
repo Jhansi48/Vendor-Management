@@ -10,18 +10,29 @@ from ..models import User, Vendor
 from ..schemas import UserCreate, UserLogin, Token, UserOut, ForgotPasswordRequest, ResetPasswordConfirm
 from ..utils.security import get_password_hash, verify_password, create_access_token
 from ..utils.dependencies import get_current_user
-from ..utils.helpers import log_audit
-from ..config import settings
-import logging
-
-logger = logging.getLogger("auth")
+from ..utils.helpers import log_audit, create_notification
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
+    username = user_in.username.strip()
+    email = user_in.email.strip().lower()
+
+    if len(username) < 3:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username must be at least 3 characters long"
+        )
+
+    if len(user_in.password) < 6:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 6 characters long"
+        )
+
     # Check if username exists
-    existing_username = db.query(User).filter(User.username == user_in.username).first()
+    existing_username = db.query(User).filter(User.username == username).first()
     if existing_username:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -29,7 +40,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         )
     
     # Check if email exists
-    existing_email = db.query(User).filter(User.email == user_in.email).first()
+    existing_email = db.query(User).filter(User.email == email).first()
     if existing_email:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,8 +89,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     # Password hashing
     hashed = get_password_hash(user_in.password)
     new_user = User(
-        username=user_in.username,
-        email=user_in.email,
+        username=username,
+        email=email,
         hashed_password=hashed,
         role=user_in.role,
         full_name=user_in.full_name,
@@ -106,7 +117,8 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login(login_in: UserLogin, request: Request, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == login_in.username).first()
+    clean_username = login_in.username.strip()
+    user = db.query(User).filter(User.username == clean_username).first()
     if not user or not verify_password(login_in.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -151,11 +163,9 @@ def forgot_password(req_in: ForgotPasswordRequest, db: Session = Depends(get_db)
         user.reset_token_expiry = datetime.utcnow() + timedelta(hours=1)
         db.commit()
         
-        frontend_url = settings.FRONTEND_URL.rstrip('/')
-        reset_url = f"{frontend_url}/reset-password?token={plain_token}"
+        reset_url = f"http://localhost:4200/reset-password?token={plain_token}"
         # Log to terminal for demo purposes
-        logger.info(f"[DEMO] PASSWORD RESET URL: {reset_url}")
-        print(f"\n[DEMO] PASSWORD RESET URL: {reset_url}\n", flush=True)
+        print(f"\n[DEMO] PASSWORD RESET URL: {reset_url}\n")
         
         # Trigger real SMTP email notification
         from ..services.email_service import send_password_reset_email

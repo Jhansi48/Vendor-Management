@@ -13,6 +13,7 @@ export class LoginComponent implements OnInit {
   loading = false;
   error = '';
   returnUrl = '/dashboard';
+  showPassword = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -35,6 +36,10 @@ export class LoginComponent implements OnInit {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
   }
 
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   onSubmit(): void {
     if (this.loginForm.invalid) {
       return;
@@ -43,7 +48,12 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
+    const credentials = {
+      username: this.loginForm.value.username ? this.loginForm.value.username.trim() : '',
+      password: this.loginForm.value.password
+    };
+
+    this.authService.login(credentials).subscribe({
       next: () => {
         this.router.navigateByUrl(this.returnUrl);
       },

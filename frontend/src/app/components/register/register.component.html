@@ -1,122 +1,249 @@
-<div class="register-wrapper">
-  <div class="register-card">
-    <div class="register-header">
-      <div class="logo">
-        <span class="material-icons logo-icon">verified_user</span>
-        VendorIQ
+<div class="register-page-container">
+  <!-- Left Column: Editorial Onboarding Panel -->
+  <div class="register-brand-panel">
+    <div class="brand-panel-content">
+      <div class="brand-badge-pill">
+        <span class="pulse-indicator"></span>
+        <span>ONBOARDING DISPATCH</span>
       </div>
-      <h1 class="register-title">Register an account</h1>
-      <p class="register-subtitle">Create a new platform identity or register a vendor profile</p>
+
+      <div class="brand-logo-lockup">
+        <svg class="brand-seal-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="22" stroke="#DCE6D9" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <path d="M24 6L38 14V26C38 34.5 32 40.5 24 43C16 40.5 10 34.5 10 26V14L24 6Z" fill="#234B3B" stroke="#DCE6D9" stroke-width="2"/>
+          <path d="M17 24L22 29L31 19" stroke="#F7F3EC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-title font-serif">VendorIQ</span>
+      </div>
+
+      <h1 class="brand-hero-heading font-serif">
+        Join the trusted enterprise supplier reliability network.
+      </h1>
+
+      <p class="brand-hero-subtext">
+        Establish verifiable corporate credentials, streamline purchase order tracking, and synchronize contract compliance telemetry under rigorous ISO standards.
+      </p>
+
+      <!-- Protocol Highlights -->
+      <div class="protocol-checklist">
+        <div class="protocol-item">
+          <span class="material-icons protocol-icon">verified</span>
+          <div>
+            <div class="protocol-title">Automated KYV Verification</div>
+            <div class="protocol-desc">Instant company profile screening against global sanctions and compliance databases.</div>
+          </div>
+        </div>
+        <div class="protocol-item">
+          <span class="material-icons protocol-icon">insights</span>
+          <div>
+            <div class="protocol-title">Multi-Tier Reliability Index</div>
+            <div class="protocol-desc">Real-time fulfillment metrics calculated across delivery speed, quality, and claim rates.</div>
+          </div>
+        </div>
+        <div class="protocol-item">
+          <span class="material-icons protocol-icon">shield</span>
+          <div>
+            <div class="protocol-title">Zero-Trust Audit Logs</div>
+            <div class="protocol-desc">Immutable audit trails for every order amendment, invoice approval, and contract milestone.</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-      <div *ngIf="error" class="alert alert-danger" role="alert">
-        {{ error }}
+    <!-- Background Pattern -->
+    <div class="brand-panel-graphic" aria-hidden="true">
+      <svg class="network-svg" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="250" cy="250" r="190" stroke="rgba(220, 230, 217, 0.1)" stroke-width="1"/>
+        <circle cx="250" cy="250" r="110" stroke="rgba(184, 92, 56, 0.25)" stroke-width="1.5" stroke-dasharray="6 6"/>
+        <circle cx="250" cy="250" r="50" stroke="rgba(220, 230, 217, 0.18)" stroke-width="1"/>
+        <line x1="250" y1="50" x2="250" y2="450" stroke="rgba(220, 230, 217, 0.08)" stroke-width="1"/>
+        <line x1="50" y1="250" x2="450" y2="250" stroke="rgba(220, 230, 217, 0.08)" stroke-width="1"/>
+        <circle cx="250" cy="140" r="6" fill="#DCE6D9"/>
+        <circle cx="360" cy="250" r="6" fill="#B85C38"/>
+        <circle cx="250" cy="360" r="6" fill="#DCE6D9"/>
+        <circle cx="140" cy="250" r="6" fill="#DCE6D9"/>
+        <circle cx="250" cy="250" r="8" fill="#F7F3EC"/>
+      </svg>
+    </div>
+
+    <div class="brand-footer-note font-mono">
+      <span>ONBOARDING GATEWAY // SECURE</span>
+      <span>ISO 9001:2015 ALIGNED</span>
+    </div>
+  </div>
+
+  <!-- Right Column: Registration Form -->
+  <div class="register-form-panel">
+    <div class="form-container">
+      <div class="mobile-brand-header d-md-none">
+        <div class="brand-logo-lockup">
+          <svg class="brand-seal-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="22" stroke="#234B3B" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <path d="M24 6L38 14V26C38 34.5 32 40.5 24 43C16 40.5 10 34.5 10 26V14L24 6Z" fill="#234B3B"/>
+            <path d="M17 24L22 29L31 19" stroke="#F7F3EC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="brand-title font-serif text-dark">VendorIQ</span>
+        </div>
       </div>
 
-      <div *ngIf="success" class="alert alert-success" role="alert">
-        Account successfully registered! Redirecting to login...
+      <div class="form-header">
+        <h2 class="form-title font-serif">Register Account</h2>
+        <p class="form-subtitle">Provision a new user profile or register your vendor organization.</p>
       </div>
 
-      <div class="row">
-        <div class="col-md-6 form-group">
-          <label for="username" class="form-label">Username</label>
-          <input 
-            type="text" 
-            id="username" 
-            formControlName="username" 
-            class="form-control" 
-            placeholder="e.g. jconnor"
-            [class.is-invalid]="registerForm.get('username')?.touched && registerForm.get('username')?.invalid"
-            required
-          />
-          <div *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.invalid" class="invalid-feedback d-block">
-            Min 3 characters required.
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+        <div *ngIf="error" class="custom-alert alert-error" role="alert" aria-live="assertive">
+          <span class="material-icons alert-icon">error_outline</span>
+          <span>{{ error }}</span>
+        </div>
+
+        <div *ngIf="success" class="custom-alert alert-success" role="status" aria-live="polite">
+          <span class="material-icons alert-icon">check_circle</span>
+          <span>Profile created successfully! Redirecting to login console...</span>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-sm-6 form-field">
+            <label for="username" class="field-label">Username</label>
+            <div class="field-input-wrap">
+              <span class="material-icons field-icon" aria-hidden="true">person</span>
+              <input 
+                type="text" 
+                id="username" 
+                formControlName="username" 
+                class="custom-input" 
+                placeholder="e.g. jconnor" 
+                [class.has-error]="registerForm.get('username')?.touched && registerForm.get('username')?.invalid"
+                autocomplete="username"
+                required
+              />
+            </div>
+            <div *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.invalid" class="field-error-text">
+              Min 3 characters required.
+            </div>
+          </div>
+
+          <div class="col-sm-6 form-field">
+            <label for="email" class="field-label">Email Address</label>
+            <div class="field-input-wrap">
+              <span class="material-icons field-icon" aria-hidden="true">mail</span>
+              <input 
+                type="email" 
+                id="email" 
+                formControlName="email" 
+                class="custom-input" 
+                placeholder="e.g. john@company.com" 
+                [class.has-error]="registerForm.get('email')?.touched && registerForm.get('email')?.invalid"
+                autocomplete="email"
+                required
+              />
+            </div>
+            <div *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="field-error-text">
+              Valid email is required.
+            </div>
           </div>
         </div>
 
-        <div class="col-md-6 form-group">
-          <label for="email" class="form-label">Email Address</label>
-          <input 
-            type="email" 
-            id="email" 
-            formControlName="email" 
-            class="form-control" 
-            placeholder="e.g. john@company.com"
-            [class.is-invalid]="registerForm.get('email')?.touched && registerForm.get('email')?.invalid"
-            required
-          />
-          <div *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" class="invalid-feedback d-block">
-            Valid email is required.
+        <div class="form-field mt-3">
+          <label for="full_name" class="field-label">Full Name</label>
+          <div class="field-input-wrap">
+            <span class="material-icons field-icon" aria-hidden="true">badge</span>
+            <input 
+              type="text" 
+              id="full_name" 
+              formControlName="full_name" 
+              class="custom-input" 
+              placeholder="e.g. John Connor" 
+              [class.has-error]="registerForm.get('full_name')?.touched && registerForm.get('full_name')?.invalid"
+              autocomplete="name"
+              required
+            />
+          </div>
+          <div *ngIf="registerForm.get('full_name')?.touched && registerForm.get('full_name')?.invalid" class="field-error-text">
+            Full name is required.
           </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="full_name" class="form-label">Full Name</label>
-        <input 
-          type="text" 
-          id="full_name" 
-          formControlName="full_name" 
-          class="form-control" 
-          placeholder="e.g. John Connor"
-          [class.is-invalid]="registerForm.get('full_name')?.touched && registerForm.get('full_name')?.invalid"
-          required
-        />
-        <div *ngIf="registerForm.get('full_name')?.touched && registerForm.get('full_name')?.invalid" class="invalid-feedback d-block">
-          Full name is required.
-        </div>
-      </div>
+        <div class="row g-3 mt-1">
+          <div class="col-sm-6 form-field">
+            <label for="role" class="field-label">Platform Role</label>
+            <div class="field-input-wrap">
+              <span class="material-icons field-icon" aria-hidden="true">shield</span>
+              <select id="role" formControlName="role" class="custom-input custom-select" required>
+                <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+              </select>
+            </div>
+          </div>
 
-      <div class="row">
-        <div class="col-md-6 form-group">
-          <label for="role" class="form-label">System Role</label>
-          <select id="role" formControlName="role" class="form-select form-control" required>
-            <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
-          </select>
-        </div>
-
-        <div class="col-md-6 form-group">
-          <label for="password" class="form-label">Password</label>
-          <input 
-            type="password" 
-            id="password" 
-            formControlName="password" 
-            class="form-control" 
-            placeholder="Min 6 characters"
-            [class.is-invalid]="registerForm.get('password')?.touched && registerForm.get('password')?.invalid"
-            required
-          />
-          <div *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid" class="invalid-feedback d-block">
-            Min 6 characters required.
+          <div class="col-sm-6 form-field">
+            <label for="password" class="field-label">Password</label>
+            <div class="field-input-wrap">
+              <span class="material-icons field-icon" aria-hidden="true">lock</span>
+              <input 
+                [type]="showPassword ? 'text' : 'password'" 
+                id="password" 
+                formControlName="password" 
+                class="custom-input has-action-btn" 
+                placeholder="Min 6 characters" 
+                [class.has-error]="registerForm.get('password')?.touched && registerForm.get('password')?.invalid"
+                autocomplete="new-password"
+                required
+              />
+              <button 
+                type="button" 
+                class="password-toggle-btn" 
+                (click)="togglePassword()" 
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+                title="Toggle password visibility">
+                <span class="material-icons">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+              </button>
+            </div>
+            <div *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid" class="field-error-text">
+              Min 6 characters required.
+            </div>
           </div>
         </div>
-      </div>
 
-      <div *ngIf="registerForm.get('role')?.value === 'Vendor'" class="form-group">
-        <label for="vendor_name" class="form-label">Company Name (Vendor Profile)</label>
-        <input 
-          type="text" 
-          id="vendor_name" 
-          formControlName="vendor_name" 
-          class="form-control" 
-          placeholder="e.g. Apex Industrial Supplies"
-          [class.is-invalid]="registerForm.get('vendor_name')?.touched && registerForm.get('vendor_name')?.invalid"
-          required
-        />
-        <div *ngIf="registerForm.get('vendor_name')?.touched && registerForm.get('vendor_name')?.invalid" class="invalid-feedback d-block">
-          Company name is required for vendor accounts.
+        <!-- Vendor Specific Field -->
+        <div *ngIf="registerForm.get('role')?.value === 'Vendor'" class="form-field mt-3 vendor-highlight-box">
+          <label for="vendor_name" class="field-label">
+            Supplier Organization Name
+            <span class="text-terracotta">*</span>
+          </label>
+          <div class="field-input-wrap">
+            <span class="material-icons field-icon" aria-hidden="true">storefront</span>
+            <input 
+              type="text" 
+              id="vendor_name" 
+              formControlName="vendor_name" 
+              class="custom-input" 
+              placeholder="e.g. Apex Industrial Supplies Ltd." 
+              [class.has-error]="registerForm.get('vendor_name')?.touched && registerForm.get('vendor_name')?.invalid"
+              required
+            />
+          </div>
+          <div *ngIf="registerForm.get('vendor_name')?.touched && registerForm.get('vendor_name')?.invalid" class="field-error-text">
+            Supplier organization name is required.
+          </div>
+          <p class="field-helper-note">
+            An automated pending-approval vendor record will be created for review by procurement managers.
+          </p>
         </div>
-      </div>
 
-      <button type="submit" class="btn btn-primary-custom w-100 btn-register" [disabled]="registerForm.invalid || loading">
-        <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        {{ loading ? 'Creating account...' : 'Register Account' }}
-      </button>
+        <button 
+          type="submit" 
+          class="auth-submit-btn mt-4" 
+          [disabled]="registerForm.invalid || loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          <span>{{ loading ? 'Provisioning Account...' : 'Complete Registration' }}</span>
+          <span *ngIf="!loading" class="material-icons btn-arrow">arrow_forward</span>
+        </button>
 
-      <div class="login-prompt text-center mt-3">
-        Already have an account? <a routerLink="/login">Sign in</a>
-      </div>
-    </form>
+        <div class="form-footer-action">
+          <span class="text-secondary">Already registered?</span>
+          <a routerLink="/login" class="action-link font-semibold">Sign In to Console</a>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

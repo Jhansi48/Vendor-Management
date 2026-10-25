@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 from app.main import app
 from app.database import Base, get_db
-from app.models import User, Vendor, VendorPerformance, ProcurementRequest, PurchaseOrder, Contract
+from app.models import User, Vendor, VendorPerformance, ProcurementRequest, PurchaseOrder, Contract, Notification
 from app.utils.security import get_password_hash
 from app.routes.reliability import calculate_vendor_score_logic
 
@@ -640,6 +640,144 @@ def test_self_service_avatar_uploads_and_validation():
     # Check persistence
     db.refresh(pm_user)
     assert pm_user.avatar_url is None
+
+    db.close()
+
+
+def test_registration_and_validation():
+    db = TestingSessionLocal()
+    
+    # 1. Valid user registration
+    payload = {
+        "username": "new_proc_user",
+        "email": "new_proc@test.com",
+        "full_name": "New Procurement Person",
+        "role": "Procurement Manager",
+        "password": "strongPassword123"
+    }
+    resp = client.post("/api/auth/register", json=payload)
+    assert resp.status_code == 201
+    data = resp.json()
+    assert data["username"] == "new_proc_user"
+    assert data["email"] == "new_proc@test.com"
+    assert data["role"] == "Procurement Manager"
+    assert "password" not in data
+
+    # 2. Duplicate username rejection
+    resp_dup_user = client.post("/api/auth/register", json=payload)
+    assert resp_dup_user.status_code == 400
+    assert "Username already registered" in resp_dup_user.json()["detail"]
+
+    # 3. Duplicate email rejection with distinct username
+    dup_email_payload = {
+        "username": "another_unique_user",
+        "email": "new_proc@test.com",
+        "full_name": "Another User",
+        "role": "Auditor",
+        "password": "strongPassword123"
+    }
+    resp_dup_email = client.post("/api/auth/register", json=dup_email_payload)
+    assert resp_dup_email.status_code == 400
+    assert "Email already registered" in resp_dup_email.json()["detail"]
+
+    # 4. Short password rejection
+    short_pw_payload = {
+        "username": "short_pw_user",
+        "email": "shortpw@test.com",
+        "full_name": "Short PW User",
+        "role": "Auditor",
+        "password": "123"
+    }
+    resp_short_pw = client.post("/api/auth/register", json=short_pw_payload)
+    assert resp_short_pw.status_code == 400
+    assert "at least 6 characters" in resp_short_pw.json()["detail"]
+
+    db.close()
+
+
+def test_vendor_registration_flow():
+    db = TestingSessionLocal()
+
+    # Create SCM recipient to receive notification
+    scm_user = User(
+        username="scm_listener",
+        email="scm_listener@test.com",
+        hashed_password=get_password_hash("password123"),
+        role="Supply Chain Manager",
+        full_name="SCM Listener",
+        is_active=True
+    )
+    db.add(scm_user)
+    db.commit()
+
+    # Register new vendor user with company name
+    vendor_signup_payload = {
+        "username": "apex_rep",
+        "email": "rep@apexsupplies.com",
+        "full_name": "Apex Representative",
+        "role": "Vendor",
+        "vendor_name": "Apex Global Logistics",
+        "password": "secureVendorPass123"
+    }
+    resp = client.post("/api/auth/register", json=vendor_signup_payload)
+    assert resp.status_code == 201
+    user_data = resp.json()
+    assert user_data["username"] == "apex_rep"
+    assert user_data["role"] == "Vendor"
+    assert user_data["vendor_id"] is not None
+
+    # Verify Vendor entity was created with Pending Approval
+    vendor_entity = db.query(Vendor).filter(Vendor.id == user_data["vendor_id"]).first()
+    assert vendor_entity is not None
+    assert vendor_entity.name == "Apex Global Logistics"
+    assert vendor_entity.status == "Pending Approval"
+
+    # Verify notification dispatched to SCM
+    notif = db.query(Notification).filter(Notification.user_id == scm_user.id).order_by(Notification.id.desc()).first()
+    assert notif is not None
+    assert "Apex Global Logistics" in notif.message
+
+    db.close()
+
+
+def test_login_and_token_validation():
+    db = TestingSessionLocal()
+
+    # Register user specifically for this test
+    signup_payload = {
+        "username": "login_tester_user",
+        "email": "login_tester@test.com",
+        "full_name": "Login Tester",
+        "role": "Procurement Manager",
+        "password": "strongPassword123"
+    }
+    reg_resp = client.post("/api/auth/register", json=signup_payload)
+    assert reg_resp.status_code == 201
+
+    # 1. Valid login
+    login_resp = client.post("/api/auth/login", json={"username": "login_tester_user", "password": "strongPassword123"})
+    assert login_resp.status_code == 200
+    token_data = login_resp.json()
+    assert "access_token" in token_data
+    assert token_data["token_type"] == "bearer"
+
+    # 2. Invalid password
+    bad_login = client.post("/api/auth/login", json={"username": "login_tester_user", "password": "wrongPassword"})
+    assert bad_login.status_code == 400
+    assert "Incorrect username or password" in bad_login.json()["detail"]
+
+    # 3. Nonexistent user
+    non_login = client.post("/api/auth/login", json={"username": "non_existent_ghost", "password": "somePassword"})
+    assert non_login.status_code == 400
+    assert "Incorrect username or password" in non_login.json()["detail"]
+
+    # 4. Access protected /auth/me with token
+    headers = {"Authorization": f"Bearer {token_data['access_token']}"}
+    me_resp = client.get("/api/auth/me", headers=headers)
+    assert me_resp.status_code == 200
+    me_data = me_resp.json()
+    assert me_data["username"] == "login_tester_user"
+    assert me_data["role"] == "Procurement Manager"
 
     db.close()
 

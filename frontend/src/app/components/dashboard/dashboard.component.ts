@@ -78,7 +78,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   renderCharts(): void {
     if (!this.chartsData) return;
 
-    // 1. Procurement Spend Trend (Line Chart with Shading)
+    // 1. Procurement Spend Trend (Line Chart with Editorial Shading)
     const months = this.chartsData.spending_by_month.map((x: any) => x.month);
     const spending = this.chartsData.spending_by_month.map((x: any) => x.amount);
     
@@ -87,36 +87,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
       data: {
         labels: months,
         datasets: [{
-          label: 'Spending ($)',
+          label: 'Spend ($)',
           data: spending,
-          borderColor: '#0ea5e9',
-          backgroundColor: 'rgba(14, 165, 233, 0.08)',
+          borderColor: '#234B3B',
+          backgroundColor: 'rgba(35, 75, 59, 0.08)',
           fill: true,
-          tension: 0.3,
-          borderWidth: 2,
-          pointBackgroundColor: '#0ea5e9',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 1.5,
-          pointRadius: 4,
-          pointHoverRadius: 6
+          tension: 0.25,
+          borderWidth: 2.2,
+          pointBackgroundColor: '#B85C38',
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 4.5,
+          pointHoverRadius: 6.5
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { 
-          legend: { display: false }
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1C3D30',
+            titleFont: { family: 'Plus Jakarta Sans', size: 12 },
+            bodyFont: { family: 'JetBrains Mono', size: 13 },
+            padding: 10,
+            cornerRadius: 4,
+            callbacks: {
+              label: (context) => ' Spend: $' + Number(context.raw).toLocaleString()
+            }
+          }
         },
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#64748b', font: { size: 11 } }
+            ticks: { color: '#77776F', font: { family: 'Plus Jakarta Sans', size: 11 } }
           },
           y: {
-            grid: { color: '#f1f5f9' },
+            grid: { color: '#E8E1D7' },
             ticks: { 
-              color: '#64748b', 
-              font: { size: 11 },
+              color: '#77776F', 
+              font: { family: 'JetBrains Mono', size: 11 },
               callback: (value) => '$' + Number(value).toLocaleString()
             }
           }
@@ -128,14 +138,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const riskLabels = this.chartsData.risk_distribution.map((x: any) => x.risk_level);
     const riskCounts = this.chartsData.risk_distribution.map((x: any) => x.count);
 
-    // Map risk levels to professional enterprise colors
+    // Map risk levels to bespoke brand palette
     const colorMap: { [key: string]: string } = {
-      'LOW': '#10b981',       // Healthy green
-      'MEDIUM': '#f59e0b',    // Warning orange
-      'HIGH': '#ef4444',      // Action red
-      'CRITICAL': '#7f1d1d'   // Critical dark red
+      'LOW': '#234B3B',        // Deep Forest Green
+      'MEDIUM': '#7A997D',     // Deepened Sage for accessibility
+      'HIGH': '#C27803',       // Muted Amber
+      'CRITICAL': '#9B2C2C'    // Muted Red
     };
-    const colors = riskLabels.map((label: string) => colorMap[label] || '#94a3b8');
+    const colors = riskLabels.map((label: string) => colorMap[label] || '#77776F');
     
     this.reliabilityChart = new Chart(this.reliabilityCanvas.nativeElement, {
       type: 'doughnut',
@@ -145,7 +155,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
           data: riskCounts,
           backgroundColor: colors,
           borderWidth: 2,
-          borderColor: '#ffffff'
+          borderColor: '#FFFFFF',
+          hoverOffset: 4
         }]
       },
       options: {
@@ -155,14 +166,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
           legend: {
             position: 'bottom',
             labels: {
-              boxWidth: 8,
-              padding: 12,
-              font: { size: 11, family: 'Inter' },
-              color: '#64748b'
+              boxWidth: 10,
+              boxHeight: 10,
+              padding: 14,
+              font: { size: 11, family: 'Plus Jakarta Sans', weight: 500 },
+              color: '#292B28'
             }
+          },
+          tooltip: {
+            backgroundColor: '#1C3D30',
+            bodyFont: { family: 'JetBrains Mono', size: 12 },
+            padding: 8,
+            cornerRadius: 4
           }
         },
-        cutout: '65%'
+        cutout: '68%'
       }
     });
   }

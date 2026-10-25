@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, map, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, tap, map, catchError, of, switchMap } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -20,7 +20,16 @@ export class AuthService {
     if (token) {
       const payload = this.decodeToken(token);
       if (payload && payload.exp * 1000 > Date.now()) {
-        // Fetch fresh details from /me to populate BehaviorSubject
+        // Immediate claims seed from token so guards and headers evaluate synchronously
+        if (!this.currentUserSubject.value) {
+          this.currentUserSubject.next({
+            username: payload.sub,
+            role: payload.role,
+            full_name: payload.sub,
+            is_active: true
+          });
+        }
+        // Fetch fresh detailed record from /me
         this.http.get<any>(`${this.apiUrl}/me`).pipe(
           catchError(() => {
             this.logout();
@@ -51,9 +60,26 @@ export class AuthService {
 
   public login(credentials: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, credentials).pipe(
-      tap(res => {
+      switchMap(res => {
         localStorage.setItem('vendoriq_token', res.access_token);
-        this.loadCurrentUser();
+        const payload = this.decodeToken(res.access_token);
+        if (payload) {
+          this.currentUserSubject.next({
+            username: payload.sub,
+            role: payload.role,
+            full_name: payload.sub,
+            is_active: true
+          });
+        }
+        return this.http.get<any>(`${this.apiUrl}/me`).pipe(
+          tap(user => {
+            if (user) {
+              this.currentUserSubject.next(user);
+            }
+          }),
+          map(() => res),
+          catchError(() => of(res))
+        );
       })
     );
   }

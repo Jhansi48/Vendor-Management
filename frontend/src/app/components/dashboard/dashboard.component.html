@@ -1,189 +1,272 @@
-<div class="page-container">
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">Procurement Intelligence Dashboard</h1>
-      <p class="page-subtitle">Real-time overview of supplier reliability, purchasing workflows, and compliance risks.</p>
+<div class="dashboard-page">
+  <!-- Editorial Page Header -->
+  <div class="dashboard-header">
+    <div class="header-titles">
+      <div class="dispatch-tag font-mono">
+        <span class="live-dot-sm"></span>
+        <span>DISPATCH // PROCUREMENT RISK INTELLIGENCE</span>
+      </div>
+      <h1 class="page-title font-serif">Supplier Reliability & Risk Command</h1>
+      <p class="page-subtitle">Algorithmic risk evaluation, multi-tier supplier fulfillment, and real-time purchasing telemetry.</p>
+    </div>
+    <div class="header-meta d-none d-md-flex">
+      <div class="meta-pill font-mono">
+        <span class="material-icons meta-icon">schedule</span>
+        <span>REAL-TIME AUDIT STREAM</span>
+      </div>
     </div>
   </div>
 
-  <!-- KPI Loading State -->
-  <div *ngIf="loadingKPIs" class="d-flex justify-content-center my-5">
+  <!-- Loading State -->
+  <div *ngIf="loadingKPIs" class="dashboard-loading-box">
     <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading dashboard...</span>
+      <span class="visually-hidden">Loading telemetry data...</span>
     </div>
+    <div class="loading-label font-mono mt-3">SYNCHRONIZING TELEMETRY STREAMS...</div>
   </div>
 
-  <!-- KPI Cards Grid -->
-  <div *ngIf="!loadingKPIs" class="kpi-grid">
-    <!-- Card 1 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">business</span>
-      <div class="kpi-title">Total Vendors</div>
-      <div class="kpi-value">{{ kpis.total_vendors }}</div>
-      <div class="kpi-trend">
-        <span class="badge-status active">Active: {{ kpis.active_vendors }}</span>
-      </div>
-    </div>
-    <!-- Card 2 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">pending_actions</span>
-      <div class="kpi-title">Pending Approvals</div>
-      <div class="kpi-value">{{ kpis.pending_approvals }}</div>
-      <div class="kpi-trend">
-        <span class="badge-status pending" *ngIf="kpis.pending_approvals > 0">Needs Review</span>
-        <span class="text-muted" *ngIf="kpis.pending_approvals === 0">Fully Processed</span>
-      </div>
-    </div>
-    <!-- Card 3 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">receipt_long</span>
-      <div class="kpi-title">Active POs</div>
-      <div class="kpi-value">{{ kpis.active_pos }}</div>
-      <div class="kpi-trend text-muted">
-        Ordered or Out for Delivery
-      </div>
-    </div>
-    <!-- Card 4 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">monetization_on</span>
-      <div class="kpi-title">Procurement Value</div>
-      <div class="kpi-value">${{ kpis.procurement_value | number:'1.2-2' }}</div>
-      <div class="kpi-trend text-muted">
-        Total cumulative spend
-      </div>
-    </div>
-    <!-- Card 5 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">speed</span>
-      <div class="kpi-title">Avg Reliability</div>
-      <div class="kpi-value">{{ kpis.average_reliability }}%</div>
-      <div class="kpi-trend">
-        <span class="badge-status active" *ngIf="kpis.average_reliability >= 80">Excellent</span>
-        <span class="badge-status pending" *ngIf="kpis.average_reliability >= 60 && kpis.average_reliability < 80">Moderate</span>
-        <span class="badge-status rejected" *ngIf="kpis.average_reliability < 60">Critical</span>
-      </div>
-    </div>
-    <!-- Card 6 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">report_problem</span>
-      <div class="kpi-title">High Risk Vendors</div>
-      <div class="kpi-value text-danger" [class.text-dark]="kpis.high_risk_vendors === 0">{{ kpis.high_risk_vendors }}</div>
-      <div class="kpi-trend">
-        <span class="badge-status rejected" *ngIf="kpis.high_risk_vendors > 0">Action Required</span>
-        <span class="badge-status active" *ngIf="kpis.high_risk_vendors === 0">0 High Risk Profiles</span>
-      </div>
-    </div>
-    <!-- Card 7 -->
-    <div class="kpi-card">
-      <span class="material-icons kpi-icon">gavel</span>
-      <div class="kpi-title">Expiring Contracts</div>
-      <div class="kpi-value" [class.text-warning]="kpis.expiring_contracts > 0">{{ kpis.expiring_contracts }}</div>
-      <div class="kpi-trend">
-        <span class="badge-status pending" *ngIf="kpis.expiring_contracts > 0">Expires &lt; 30 Days</span>
-        <span class="text-muted" *ngIf="kpis.expiring_contracts === 0">No urgent expirations</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Charts Loading State -->
-  <div *ngIf="loadingCharts" class="d-flex justify-content-center my-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Loading dashboard data...</span>
-    </div>
-  </div>
-
-  <!-- Charts Layout Grid -->
-  <div *ngIf="!loadingCharts" class="row g-3">
-    <!-- Procurement Spend Trend -->
-    <div class="col-lg-8">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">Procurement Spend Trend</h2>
-          <p class="chart-subtitle">Monthly purchase order aggregate values ({{ chartsData.spending_by_month.length }} Months)</p>
+  <div *ngIf="!loadingKPIs">
+    <!-- Hero 3-Column Asymmetric Intelligence Banner -->
+    <div class="hero-intelligence-banner mb-4">
+      <!-- Hero 1: Reliability Health Index -->
+      <div class="hero-card hero-reliability">
+        <div class="hero-card-header">
+          <span class="card-kicker font-mono">FLEET BENCHMARK</span>
+          <span class="material-icons hero-icon text-sage">speed</span>
         </div>
-        <div class="chart-body">
-          <canvas #spendingCanvas></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Vendor Reliability Overview -->
-    <div class="col-lg-4">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">Vendor Reliability Overview</h2>
-          <p class="chart-subtitle">Active suppliers grouped by risk threat portfolio</p>
-        </div>
-        <div class="chart-body text-center">
-          <canvas #reliabilityCanvas></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Risk & Actions -->
-    <div class="col-lg-6">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">Risk & Actions</h2>
-          <p class="chart-subtitle">Critical supplier assessments and pending approval workflows</p>
-        </div>
-        <div class="chart-list-body">
-          <div *ngIf="riskActions.length === 0" class="empty-list-state text-center py-4">
-            <span class="material-icons empty-icon text-success fs-1">check_circle</span>
-            <div class="empty-text mt-2 text-muted">No active risk items found. All systems compliant.</div>
-          </div>
-          <div *ngIf="riskActions.length > 0" class="list-container">
-            <a class="list-item clickable-item text-decoration-none" *ngFor="let item of riskActions" [routerLink]="getRiskRoute(item)">
-              <div class="item-icon-wrapper">
-                <span class="material-icons text-danger" *ngIf="item.type === 'high_risk_vendor'">report_problem</span>
-                <span class="material-icons text-warning" *ngIf="item.type === 'pending_approval'">pending_actions</span>
-                <span class="material-icons text-info" *ngIf="item.type === 'expiring_contract'">gavel</span>
-              </div>
-              <div class="item-details flex-grow-1">
-                <div class="item-title font-weight-bold">{{ item.label }}</div>
-                <div class="item-desc text-muted">{{ item.details }}</div>
-              </div>
-              <span class="risk-badge" [ngClass]="item.priority === 'High' ? 'bg-danger-light' : 'bg-warning-light'">
-                {{ item.priority }}
-              </span>
-            </a>
+        <div class="hero-metric-row">
+          <div class="hero-metric-val font-serif">{{ kpis.average_reliability }}%</div>
+          <div class="hero-metric-badge" [ngClass]="{
+            'badge-forest': kpis.average_reliability >= 80,
+            'badge-amber': kpis.average_reliability >= 60 && kpis.average_reliability < 80,
+            'badge-red': kpis.average_reliability < 60
+          }">
+            {{ kpis.average_reliability >= 80 ? 'Optimal Portfolio' : (kpis.average_reliability >= 60 ? 'Moderate Variance' : 'Critical Hazard') }}
           </div>
         </div>
+        <div class="reliability-progress-track">
+          <div class="reliability-progress-bar" [style.width.%]="kpis.average_reliability" [ngClass]="{
+            'bg-forest': kpis.average_reliability >= 80,
+            'bg-amber': kpis.average_reliability >= 60 && kpis.average_reliability < 80,
+            'bg-red': kpis.average_reliability < 60
+          }"></div>
+        </div>
+        <div class="hero-card-footer font-mono">
+          <span>TARGET BENCHMARK: 85.0%</span>
+          <span>WEIGHTED SCORES</span>
+        </div>
+      </div>
+
+      <!-- Hero 2: Cumulative Procurement Value -->
+      <div class="hero-card hero-spend">
+        <div class="hero-card-header">
+          <span class="card-kicker font-mono">CUMULATIVE COMMITMENT</span>
+          <span class="material-icons hero-icon text-terracotta">payments</span>
+        </div>
+        <div class="hero-metric-row">
+          <div class="hero-metric-val font-mono">${{ kpis.procurement_value | number:'1.2-2' }}</div>
+        </div>
+        <div class="spend-details-row">
+          <span class="detail-label">Active Purchase Orders:</span>
+          <span class="detail-val font-mono font-bold">{{ kpis.active_pos }} POs Committed</span>
+        </div>
+        <div class="hero-card-footer font-mono">
+          <span>SETTLEMENT CYCLE: NET 30</span>
+          <a routerLink="/purchase-orders" class="footer-inline-link">VIEW PO LEDGER &rarr;</a>
+        </div>
+      </div>
+
+      <!-- Hero 3: Threat & Direct Action Center -->
+      <div class="hero-card hero-threat" [class.has-critical]="kpis.high_risk_vendors > 0">
+        <div class="hero-card-header">
+          <span class="card-kicker font-mono">CRITICAL ACTION CENTER</span>
+          <span class="material-icons hero-icon" [ngClass]="kpis.high_risk_vendors > 0 ? 'text-red' : 'text-forest'">
+            {{ kpis.high_risk_vendors > 0 ? 'warning' : 'verified' }}
+          </span>
+        </div>
+        <div class="threat-stats-grid">
+          <div class="threat-stat-item">
+            <div class="threat-num font-mono" [class.text-red]="kpis.high_risk_vendors > 0">{{ kpis.high_risk_vendors }}</div>
+            <div class="threat-label">High Risk Suppliers</div>
+          </div>
+          <div class="threat-stat-item">
+            <div class="threat-num font-mono" [class.text-amber]="kpis.expiring_contracts > 0">{{ kpis.expiring_contracts }}</div>
+            <div class="threat-label">Expiring Contracts &lt;30d</div>
+          </div>
+          <div class="threat-stat-item">
+            <div class="threat-num font-mono" [class.text-amber]="kpis.pending_approvals > 0">{{ kpis.pending_approvals }}</div>
+            <div class="threat-label">Pending Approval Requests</div>
+          </div>
+        </div>
+        <div class="hero-card-footer font-mono">
+          <span>PRIORITY DISPATCH</span>
+          <a routerLink="/reliability" class="footer-inline-link">EVALUATE THREATS &rarr;</a>
+        </div>
       </div>
     </div>
 
-    <!-- Recent Activity -->
-    <div class="col-lg-6">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">Recent Activity</h2>
-          <p class="chart-subtitle">Latest operations and audit events logged across modules</p>
+    <!-- Secondary KPI Strip -->
+    <div class="secondary-kpi-grid mb-4">
+      <div class="mini-kpi-card">
+        <div class="mini-kpi-header">
+          <span class="mini-kpi-title">Active Suppliers</span>
+          <span class="material-icons mini-icon">business</span>
         </div>
-        <div class="chart-list-body">
-          <div *ngIf="recentActivities.length === 0" class="empty-list-state text-center py-4">
-            <span class="material-icons empty-icon text-muted fs-1">history</span>
-            <div class="empty-text mt-2 text-muted">No recent system activity logged.</div>
+        <div class="mini-kpi-val font-serif">{{ kpis.active_vendors }} <span class="mini-kpi-sub font-sans">/ {{ kpis.total_vendors }} total</span></div>
+        <div class="mini-kpi-footer font-mono">
+          <a routerLink="/vendors" class="kpi-nav-link">Directory Ledger &rarr;</a>
+        </div>
+      </div>
+
+      <div class="mini-kpi-card">
+        <div class="mini-kpi-header">
+          <span class="mini-kpi-title">Pending Approvals</span>
+          <span class="material-icons mini-icon">pending_actions</span>
+        </div>
+        <div class="mini-kpi-val font-serif" [class.text-amber]="kpis.pending_approvals > 0">{{ kpis.pending_approvals }}</div>
+        <div class="mini-kpi-footer font-mono">
+          <a routerLink="/procurement" class="kpi-nav-link">Review Requisitions &rarr;</a>
+        </div>
+      </div>
+
+      <div class="mini-kpi-card">
+        <div class="mini-kpi-header">
+          <span class="mini-kpi-title">In-Flight Orders</span>
+          <span class="material-icons mini-icon">local_shipping</span>
+        </div>
+        <div class="mini-kpi-val font-serif">{{ kpis.active_pos }}</div>
+        <div class="mini-kpi-footer font-mono">
+          <a routerLink="/purchase-orders" class="kpi-nav-link">Track Shipments &rarr;</a>
+        </div>
+      </div>
+
+      <div class="mini-kpi-card">
+        <div class="mini-kpi-header">
+          <span class="mini-kpi-title">Legal Expirations</span>
+          <span class="material-icons mini-icon">gavel</span>
+        </div>
+        <div class="mini-kpi-val font-serif" [class.text-amber]="kpis.expiring_contracts > 0">{{ kpis.expiring_contracts }}</div>
+        <div class="mini-kpi-footer font-mono">
+          <a routerLink="/contracts" class="kpi-nav-link">Renew Documentation &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Telemetry Charts Section -->
+    <div class="row g-4 mb-4" *ngIf="!loadingCharts">
+      <!-- Spend Trend Chart -->
+      <div class="col-lg-8">
+        <div class="intelligence-card">
+          <div class="card-header-editorial">
+            <div>
+              <span class="card-tag font-mono">FINANCIAL AGGREGATE</span>
+              <h2 class="card-heading font-serif">Procurement Spend Telemetry</h2>
+              <p class="card-caption">Aggregated purchase order disbursements over previous operating months</p>
+            </div>
+            <span class="badge-status-subtle font-mono">HISTORICAL STREAM</span>
           </div>
-          <div *ngIf="recentActivities.length > 0" class="list-container">
-            <div class="list-item" *ngFor="let activity of recentActivities">
-              <div class="item-icon-wrapper activity-icon">
-                <span class="material-icons text-primary" *ngIf="activity.module === 'Auth'">person</span>
-                <span class="material-icons text-success" *ngIf="activity.module === 'Vendors'">business</span>
-                <span class="material-icons text-info" *ngIf="activity.module === 'Procurement'">shopping_cart</span>
-                <span class="material-icons text-secondary" *ngIf="activity.module === 'Purchase Orders'">receipt_long</span>
-                <span class="material-icons text-warning" *ngIf="activity.module === 'Contracts'">description</span>
-                <span class="material-icons text-muted" *ngIf="!['Auth', 'Vendors', 'Procurement', 'Purchase Orders', 'Contracts'].includes(activity.module)">settings</span>
-              </div>
-              <div class="item-details flex-grow-1">
-                <div class="item-title text-dark">
-                  <span class="activity-user font-weight-bold">{{ activity.username }}</span>
-                  {{ activity.action }}
+          <div class="chart-canvas-wrapper">
+            <canvas #spendingCanvas></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Risk Doughnut Chart -->
+      <div class="col-lg-4">
+        <div class="intelligence-card">
+          <div class="card-header-editorial">
+            <div>
+              <span class="card-tag font-mono">STRATIFICATION</span>
+              <h2 class="card-heading font-serif">Supplier Risk Portfolio</h2>
+              <p class="card-caption">Active suppliers stratified by multi-metric threat rating</p>
+            </div>
+          </div>
+          <div class="doughnut-canvas-wrapper">
+            <canvas #reliabilityCanvas></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Directives & Audit Trail Ledger -->
+    <div class="row g-4" *ngIf="!loadingCharts">
+      <!-- Left: Risk & Immediate Directives -->
+      <div class="col-lg-6">
+        <div class="intelligence-card h-100">
+          <div class="card-header-editorial">
+            <div>
+              <span class="card-tag font-mono">DIRECTIVES</span>
+              <h2 class="card-heading font-serif">Active Risk & Compliance Directives</h2>
+              <p class="card-caption">Flagged vendor accounts, expiring covenants, and pending workflow gates</p>
+            </div>
+            <span class="badge-status-subtle font-mono">{{ riskActions.length }} DIRECTIVES</span>
+          </div>
+
+          <div class="directive-ledger">
+            <div *ngIf="riskActions.length === 0" class="empty-state-editorial py-5 text-center">
+              <span class="material-icons empty-icon text-forest fs-1">verified</span>
+              <div class="empty-title font-serif mt-2">All Suppliers Fully Compliant</div>
+              <div class="empty-desc text-muted">Zero pending risk alerts or urgent contractual breaches detected.</div>
+            </div>
+
+            <div *ngIf="riskActions.length > 0" class="directive-list">
+              <a class="directive-row" *ngFor="let item of riskActions" [routerLink]="getRiskRoute(item)">
+                <div class="directive-icon-cell">
+                  <span class="material-icons text-red" *ngIf="item.type === 'high_risk_vendor'">report_problem</span>
+                  <span class="material-icons text-amber" *ngIf="item.type === 'pending_approval'">pending_actions</span>
+                  <span class="material-icons text-forest" *ngIf="item.type === 'expiring_contract'">gavel</span>
                 </div>
-                <div class="item-desc text-muted">{{ activity.details }}</div>
+                <div class="directive-content">
+                  <div class="directive-label font-semibold">{{ item.label }}</div>
+                  <div class="directive-details text-secondary">{{ item.details }}</div>
+                </div>
+                <div class="directive-badge-cell">
+                  <span class="severity-pill font-mono" [ngClass]="item.priority === 'High' ? 'severity-high' : 'severity-med'">
+                    {{ item.priority }} PRIORITY
+                  </span>
+                </div>
+                <span class="material-icons row-arrow">chevron_right</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Real-Time Audit Activity Feed -->
+      <div class="col-lg-6">
+        <div class="intelligence-card h-100">
+          <div class="card-header-editorial">
+            <div>
+              <span class="card-tag font-mono">AUDIT TRAIL</span>
+              <h2 class="card-heading font-serif">Recent Operations & Dispatches</h2>
+              <p class="card-caption">Latest platform events logged across authentication, POs, and contracts</p>
+            </div>
+            <a routerLink="/audit-logs" class="badge-status-subtle font-mono text-decoration-none">ALL LOGS &rarr;</a>
+          </div>
+
+          <div class="audit-ledger">
+            <div *ngIf="recentActivities.length === 0" class="empty-state-editorial py-5 text-center">
+              <span class="material-icons empty-icon text-muted fs-1">history</span>
+              <div class="empty-title font-serif mt-2">No Recent Activity Recorded</div>
+              <div class="empty-desc text-muted">New dispatches and operations will appear here in real time.</div>
+            </div>
+
+            <div *ngIf="recentActivities.length > 0" class="audit-stream">
+              <div class="audit-row" *ngFor="let activity of recentActivities">
+                <div class="audit-module-cell">
+                  <span class="module-tag font-mono">{{ activity.module }}</span>
+                </div>
+                <div class="audit-content">
+                  <div class="audit-action text-dark">
+                    <span class="audit-user font-bold">{{ activity.username }}</span>
+                    {{ activity.action }}
+                  </div>
+                  <div class="audit-details text-secondary">{{ activity.details }}</div>
+                </div>
+                <div class="audit-time font-mono text-muted">
+                  {{ activity.created_at | date:'shortTime' }}
+                </div>
               </div>
-              <span class="time-badge text-muted">
-                {{ activity.created_at | date:'shortTime' }}
-              </span>
             </div>
           </div>
         </div>

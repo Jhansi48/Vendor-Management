@@ -2,124 +2,146 @@
   <!-- Sidebar Backdrop Overlay -->
   <div class="sidebar-overlay" [class.show]="isSidebarOpen" (click)="closeSidebar()"></div>
 
-  <!-- Sidebar -->
+  <!-- Sidebar: Deep Forest Green with Bespoke Detailing -->
   <aside class="sidebar" [class.open]="isSidebarOpen">
     <div class="sidebar-brand">
-      <span class="material-icons brand-icon">verified_user</span>
-      <span class="brand-text">VendorIQ</span>
+      <div class="brand-monogram">
+        <svg class="brand-seal-mini" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" stroke="#DCE6D9" stroke-width="1.2" stroke-dasharray="2 2"/>
+          <path d="M16 4L25 9V17C25 22.5 21 26.5 16 28C11 26.5 7 22.5 7 17V9L16 4Z" fill="#1C3D30" stroke="#DCE6D9" stroke-width="1.5"/>
+          <path d="M11.5 16L14.5 19L20.5 13" stroke="#F7F3EC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text-block">
+        <span class="brand-text font-serif">VendorIQ</span>
+        <span class="brand-badge-tag font-mono">INTELLIGENCE</span>
+      </div>
     </div>
+
+    <div class="sidebar-section-label font-mono">NAVIGATION DISPATCH</div>
 
     <nav class="sidebar-nav">
       <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">dashboard</span>
-        Dashboard
+        <span>Dashboard</span>
       </a>
 
       <!-- SCM, Proc, Admin, Auditor can see Vendor list -->
       <a *ngIf="hasAccess(['Administrator', 'Procurement Manager', 'Supply Chain Manager', 'Auditor'])" 
          routerLink="/vendors" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">business</span>
-        Vendors
+        <span>Vendors Directory</span>
       </a>
 
       <!-- Vendor user can go directly to their own vendor details -->
       <a *ngIf="currentUser.role === 'Vendor' && currentUser.vendor_id" 
          [routerLink]="['/vendors', currentUser.vendor_id]" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">business</span>
-        My Profile
+        <span>My Vendor Profile</span>
       </a>
 
       <!-- SCM, Proc, Admin, Auditor, Finance can see Procurement -->
       <a *ngIf="hasAccess(['Administrator', 'Procurement Manager', 'Supply Chain Manager', 'Finance Officer', 'Auditor'])" 
          routerLink="/procurement" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">shopping_cart</span>
-        Procurement Requests
+        <span>Procurement Requests</span>
       </a>
 
       <a routerLink="/purchase-orders" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">receipt_long</span>
-        Purchase Orders
+        <span>Purchase Orders</span>
       </a>
 
       <a *ngIf="hasAccess(['Administrator', 'Procurement Manager', 'Supply Chain Manager', 'Auditor'])"
          routerLink="/performance" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">equalizer</span>
-        Performance Logs
+        <span>Performance Logs</span>
       </a>
 
       <a *ngIf="hasAccess(['Administrator', 'Procurement Manager', 'Supply Chain Manager', 'Auditor'])"
          routerLink="/reliability" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">query_stats</span>
-        Reliability Ranking
+        <span>Reliability Index</span>
       </a>
 
       <a routerLink="/contracts" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">description</span>
-        Contracts & Compliance
+        <span>Contracts & Legal</span>
       </a>
 
       <a routerLink="/communication" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">forum</span>
-        Communications
+        <span>Communications</span>
       </a>
 
       <a *ngIf="hasAccess(['Administrator', 'Procurement Manager', 'Supply Chain Manager', 'Finance Officer', 'Auditor'])"
          routerLink="/reports" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">assignment</span>
-        Reports Portal
+        <span>Reports Portal</span>
       </a>
+
+      <div *ngIf="hasAccess(['Administrator', 'Auditor'])" class="sidebar-section-label font-mono mt-3">SYSTEM CONTROL</div>
 
       <a *ngIf="hasAccess(['Administrator'])" 
          routerLink="/users" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">people</span>
-        Users
+        <span>User Accounts</span>
       </a>
 
       <a *ngIf="hasAccess(['Administrator', 'Auditor'])" 
          routerLink="/audit-logs" routerLinkActive="active" class="nav-item">
         <span class="material-icons nav-icon">history</span>
-        Audit Logs
+        <span>Audit Trail</span>
       </a>
     </nav>
 
-    <a routerLink="/profile" class="sidebar-footer-link">
-      <div class="sidebar-footer d-flex align-items-center gap-3">
-        <img [src]="authService.getAvatarUrl(currentUser.avatar_url)" class="sidebar-avatar" alt="Avatar" />
-        <div class="user-info overflow-hidden">
-          <div class="user-name text-truncate">{{ currentUser.full_name }}</div>
-          <div class="user-role text-truncate">{{ currentUser.role }}</div>
+    <!-- Sidebar Profile Bar -->
+    <a routerLink="/profile" class="sidebar-footer-link" title="Open My Profile">
+      <div class="sidebar-footer">
+        <div class="avatar-ring-wrapper">
+          <img [src]="authService.getAvatarUrl(currentUser.avatar_url)" class="sidebar-avatar" alt="User Profile Avatar" />
         </div>
+        <div class="user-info overflow-hidden">
+          <div class="user-name text-truncate">{{ currentUser.full_name || currentUser.username }}</div>
+          <div class="user-role font-mono text-truncate">{{ currentUser.role }}</div>
+        </div>
+        <span class="material-icons footer-arrow">chevron_right</span>
       </div>
     </a>
   </aside>
 
   <!-- Main Container -->
   <div class="main-content">
-    <!-- Header -->
+    <!-- Editorial Top Header -->
     <header class="top-header">
       <div class="header-left d-flex align-items-center">
         <button class="menu-toggle border-0 bg-transparent me-2" (click)="toggleSidebar($event)" aria-label="Toggle Navigation" title="Menu">
           <span class="material-icons align-middle">menu</span>
         </button>
-        <span class="role-badge">{{ currentUser.role }} Portal</span>
+
+        <!-- Live Intelligence Dispatch Status Pill -->
+        <div class="system-status-pill font-mono d-none d-sm-inline-flex">
+          <span class="live-dot"></span>
+          <span>INTELLIGENCE DISPATCH // ALL NODES OPERATIONAL</span>
+        </div>
       </div>
 
       <div class="header-right">
         <!-- Global Search Option -->
         <div class="search-header-container position-relative">
-          <button class="header-action-btn border-0 bg-transparent" (click)="toggleSearch($event)" title="Search" aria-label="Search">
+          <button class="header-action-btn border-0 bg-transparent" (click)="toggleSearch($event)" title="Search Suppliers & Records" aria-label="Search">
             <span class="material-icons align-middle">search</span>
           </button>
           
-          <div class="search-popover dropdown-menu shadow p-2" [class.show]="isSearchOpen" (click)="$event.stopPropagation()">
-            <div class="input-group" style="width: 280px;">
+          <div class="search-popover dropdown-menu shadow-md p-2" [class.show]="isSearchOpen" (click)="$event.stopPropagation()">
+            <div class="input-group" style="width: 290px;">
               <span class="input-group-text bg-transparent border-end-0 text-muted">
                 <span class="material-icons" style="font-size: 18px;">search</span>
               </span>
               <input 
                 type="text" 
-                class="form-control border-start-0 ps-1" 
-                placeholder="Search..." 
+                class="form-control border-start-0 ps-1 custom-search-input" 
+                placeholder="Search suppliers, POs, tags..." 
                 [(ngModel)]="searchQuery" 
                 (keydown.enter)="executeSearch()"
                 (keydown.escape)="closeSearch()"
@@ -131,10 +153,13 @@
           </div>
         </div>
 
+        <!-- Role Pill -->
+        <div class="role-badge font-mono">{{ currentUser.role }}</div>
+
         <!-- Notifications bell -->
-        <a routerLink="/notifications" class="header-action-btn position-relative">
+        <a routerLink="/notifications" class="header-action-btn position-relative" title="Notifications" aria-label="Notifications">
           <span class="material-icons">notifications</span>
-          <span *ngIf="unreadNotificationsCount > 0" class="badge-unread-notif">
+          <span *ngIf="unreadNotificationsCount > 0" class="badge-unread-notif font-mono">
             {{ unreadNotificationsCount }}
           </span>
         </a>
@@ -143,13 +168,28 @@
         <div class="dropdown" [class.show]="isDropdownOpen">
           <button class="user-menu-btn border-0 bg-transparent" type="button" id="userMenuButton" (click)="toggleDropdown($event)" [attr.aria-expanded]="isDropdownOpen">
             <img [src]="authService.getAvatarUrl(currentUser.avatar_url)" class="header-avatar align-middle" alt="Avatar" />
-            <span>{{ currentUser.username }}</span>
+            <span class="header-username font-semibold">{{ currentUser.username }}</span>
             <span class="material-icons" style="font-size: 18px;">keyboard_arrow_down</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end shadow" [class.show]="isDropdownOpen" aria-labelledby="userMenuButton">
-            <li><a class="dropdown-item d-flex align-items-center" routerLink="/profile" (click)="isDropdownOpen = false"><span class="material-icons me-2 fs-5">person</span> My Profile</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item d-flex align-items-center text-danger" href="javascript:void(0)" (click)="logout()"><span class="material-icons me-2 fs-5">logout</span> Sign Out</a></li>
+            <li class="dropdown-header px-3 py-2 border-bottom">
+              <div class="text-xs text-muted font-mono">LOGGED IN AS</div>
+              <div class="font-semibold text-dark text-truncate">{{ currentUser.full_name || currentUser.username }}</div>
+              <div class="text-xs text-secondary font-mono">{{ currentUser.role }}</div>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center" routerLink="/profile" (click)="isDropdownOpen = false">
+                <span class="material-icons me-2 fs-5">account_circle</span>
+                <span>My Profile</span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center text-danger" href="javascript:void(0)" (click)="logout()">
+                <span class="material-icons me-2 fs-5">logout</span>
+                <span>Sign Out</span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
