@@ -7,7 +7,7 @@ from ..models import User
 from .security import decode_access_token
 
 # Allow tokenUrl to match our endpoint /api/auth/login
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
